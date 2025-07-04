@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ReviewGen Backend Server
 
 A secure, production-ready Express.js backend server for the ReviewGen app with NVIDIA Llama API integration.
@@ -306,3 +307,6 @@ This project is licensed under the ISC License.
 ---
 
 **Note**: Always keep your NVIDIA API key secure and never commit it to version control. 
+=======
+# Vmarketing-backend-server
+>>>>>>> 831cc90239f7e85824cbf3785757c58992d7e0fe

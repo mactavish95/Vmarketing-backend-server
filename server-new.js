@@ -2,24 +2,80 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-// Import modules
-const { connectToMongoDB } = require('./config/database');
-const { 
-  securityMiddleware, 
-  limiter, 
-  corsOptions, 
-  compressionMiddleware, 
-  loggingMiddleware 
-} = require('./middleware/security');
+// Import modules with error handling
+let connectToMongoDB;
+let securityMiddleware, limiter, corsOptions, compressionMiddleware, loggingMiddleware;
+let llamaRoutes, voiceRoutes, reviewsRoutes, healthRoutes, enhancedLLMRoutes, modelsRoutes, blogRoutes;
 
-// Import routes
-const llamaRoutes = require('./routes/llama');
-const voiceRoutes = require('./routes/voice');
-const reviewsRoutes = require('./routes/reviews');
-const healthRoutes = require('./routes/health');
-const enhancedLLMRoutes = require('./routes/enhancedLLM');
-const modelsRoutes = require('./routes/models');
-const blogRoutes = require('./routes/blog');
+try {
+  const database = require('./config/database');
+  connectToMongoDB = database.connectToMongoDB;
+  console.log('✅ Database module loaded');
+} catch (error) {
+  console.error('❌ Error loading database module:', error.message);
+}
+
+try {
+  const security = require('./middleware/security');
+  securityMiddleware = security.securityMiddleware;
+  limiter = security.limiter;
+  corsOptions = security.corsOptions;
+  compressionMiddleware = security.compressionMiddleware;
+  loggingMiddleware = security.loggingMiddleware;
+  console.log('✅ Security middleware loaded');
+} catch (error) {
+  console.error('❌ Error loading security middleware:', error.message);
+}
+
+// Import routes with error handling
+try {
+  llamaRoutes = require('./routes/llama');
+  console.log('✅ Llama routes loaded');
+} catch (error) {
+  console.error('❌ Error loading llama routes:', error.message);
+}
+
+try {
+  voiceRoutes = require('./routes/voice');
+  console.log('✅ Voice routes loaded');
+} catch (error) {
+  console.error('❌ Error loading voice routes:', error.message);
+}
+
+try {
+  reviewsRoutes = require('./routes/reviews');
+  console.log('✅ Reviews routes loaded');
+} catch (error) {
+  console.error('❌ Error loading reviews routes:', error.message);
+}
+
+try {
+  healthRoutes = require('./routes/health');
+  console.log('✅ Health routes loaded');
+} catch (error) {
+  console.error('❌ Error loading health routes:', error.message);
+}
+
+try {
+  enhancedLLMRoutes = require('./routes/enhancedLLM');
+  console.log('✅ Enhanced LLM routes loaded');
+} catch (error) {
+  console.error('❌ Error loading enhanced LLM routes:', error.message);
+}
+
+try {
+  modelsRoutes = require('./routes/models');
+  console.log('✅ Models routes loaded');
+} catch (error) {
+  console.error('❌ Error loading models routes:', error.message);
+}
+
+try {
+  blogRoutes = require('./routes/blog');
+  console.log('✅ Blog routes loaded');
+} catch (error) {
+  console.error('❌ Error loading blog routes:', error.message);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -51,23 +107,43 @@ app.use((req, res, next) => {
   next();
 });
 
+// Test endpoint to verify server is working
+app.get('/api/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Server is working!',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Mount routes with error handling
-try {
-  app.use('/api', llamaRoutes);
-  app.use('/api', voiceRoutes);
-  app.use('/api', reviewsRoutes);
-  app.use('/api', healthRoutes);
-  app.use('/api', enhancedLLMRoutes);
-  app.use('/api', modelsRoutes);
-  app.use('/api', blogRoutes);
-  console.log('✅ All routes mounted successfully');
-} catch (error) {
-  console.error('❌ Error mounting routes:', error);
-}
+const routesToMount = [
+  { name: 'llama', route: llamaRoutes },
+  { name: 'voice', route: voiceRoutes },
+  { name: 'reviews', route: reviewsRoutes },
+  { name: 'health', route: healthRoutes },
+  { name: 'enhancedLLM', route: enhancedLLMRoutes },
+  { name: 'models', route: modelsRoutes },
+  { name: 'blog', route: blogRoutes }
+];
+
+routesToMount.forEach(({ name, route }) => {
+  if (route) {
+    try {
+      app.use('/api', route);
+      console.log(`✅ ${name} routes mounted successfully`);
+    } catch (error) {
+      console.error(`❌ Error mounting ${name} routes:`, error.message);
+    }
+  } else {
+    console.warn(`⚠️ ${name} routes not available`);
+  }
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

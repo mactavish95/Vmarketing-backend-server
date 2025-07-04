@@ -45,18 +45,29 @@ app.use(compressionMiddleware);
 // Apply logging
 app.use(loggingMiddleware);
 
+// Add request logging for debugging
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.path} - ${new Date().toISOString()}`);
+  next();
+});
+
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Mount routes
-app.use('/api', llamaRoutes);
-app.use('/api', voiceRoutes);
-app.use('/api', reviewsRoutes);
-app.use('/api', healthRoutes);
-app.use('/api', enhancedLLMRoutes);
-app.use('/api', modelsRoutes);
-app.use('/api', blogRoutes);
+// Mount routes with error handling
+try {
+  app.use('/api', llamaRoutes);
+  app.use('/api', voiceRoutes);
+  app.use('/api', reviewsRoutes);
+  app.use('/api', healthRoutes);
+  app.use('/api', enhancedLLMRoutes);
+  app.use('/api', modelsRoutes);
+  app.use('/api', blogRoutes);
+  console.log('✅ All routes mounted successfully');
+} catch (error) {
+  console.error('❌ Error mounting routes:', error);
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {

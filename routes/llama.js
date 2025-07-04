@@ -3,6 +3,16 @@ const router = express.Router();
 const llamaService = require('../services/llamaService');
 const { Review, mongoose } = require('../config/database');
 
+// Test endpoint for debugging
+router.get('/llama', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Llama API endpoint is working',
+    method: 'GET',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // NVIDIA Llama API endpoint
 router.post('/llama', async (req, res) => {
   try {
